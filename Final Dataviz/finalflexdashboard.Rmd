@@ -1,0 +1,125 @@
+---
+title: "Student Performance Summary"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(readxl)
+library(tidyr)
+library(ggrepel)
+library(rcartocolor)
+
+dat<-read_excel("~/Desktop/Final Dataviz/finalexam65.xlsx", 
+    sheet = "final")
+
+dat$sections <- as.factor(dat$section)
+```
+
+Overall
+=================================
+Column {data-height=200}
+-----------------------------------------------------------------------
+### Average Homework Score /10
+```{r}
+
+
+valueBox(7.33, icon="fa-book",color = "#B5D12C")
+
+
+```
+
+### Average Project Score /10
+```{r}
+
+valueBox(6.04, icon="fa-check-square-o",color = "#E8D72B")
+
+```
+
+
+
+### Average Midterm Score /60
+
+```{r}
+
+valueBox(37.28, icon="fa-pencil",color = "#E8D72B")
+
+```
+
+### Average Final Score /60
+```{r}
+valueBox(22.29, icon="fa-pencil",color = "danger")
+```
+
+
+
+Column {data-height=550}
+-----------------------------------------------------------------------
+
+### แผนภูมิแท่งแสดงการเปรียบเทียบการเข้าเรียน (นาที)
+
+```{r}
+
+dat%>%
+  group_by(sections)%>%filter(sections%in%c('4','5'))%>%
+  summarise(mean_sumattend=mean(attent_Avg))%>%
+  ggplot()+geom_bar(aes(x=sections, y=mean_sumattend), stat="identity",fill= c("#F08080","#40E0D0"))+
+  ylab("Average Attendant (minute)")
+
+```
+
+### แผนภูมิแท่งแสดงการเปรียบเทียบคะแนนสอบ Midterm
+
+```{r}
+
+dat%>%group_by(sections)%>%filter(sections%in%c('4','5'))%>%summarise(mean_Midterm=mean(Midterm_Total))%>%ggplot()+geom_bar(aes(x=sections, y=mean_Midterm), stat="identity",fill= c("#F08080","#40E0D0"))+
+ylab("Average Midterm")
+
+```
+
+### แผนภูมิแท่งแสดงการเปรียบเทียบคะแนนสอบ Final
+
+```{r}
+
+dat%>%group_by(sections)%>%filter(sections%in%c('4','5'))%>%summarise(mean_Final=mean(Final_Total))%>%ggplot()+geom_bar(aes(x=sections, y=mean_Final), stat="identity",fill= c("#F08080","#40E0D0"))+
+ylab("Average Final")
+
+```
+
+
+Column {data-height=450 }
+-----------------------------------------------------------------------
+
+### Student ID
+```{r}
+library(shiny)
+library(DT)
+library(flexdashboard)
+library(readxl)
+library(tidyr)
+library(ggplot2)
+library(gapminder)
+library(dplyr) # manipulate data
+library(gridExtra) # generate grid panel
+
+
+textInput(inputId = "ID", label = "Student ID", value = "", width = NULL, placeholder= "65xxxxxx29")
+
+
+```
+
+
+### Individual Performance {data-width=1162 }
+```{r}
+
+renderDataTable(dat%>%filter(studentid==input$ID)%>%select(hwscore,project1,Midterm_Total,Final_Total))
+
+```
+
